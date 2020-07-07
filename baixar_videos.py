@@ -1,3 +1,4 @@
+import os
 from tkinter import *
 from pytube import YouTube
 
@@ -10,7 +11,8 @@ class App():
         self.home()
 
     def home(self):
-        titulo_label = Label(self.master, text="Baixador de Músicas\ndo Youtube", font=("Courier", 14))
+        titulo_label = Label(self.master,
+            text="Baixador de Músicas\ndo Youtube", font=("Courier", 14))
         titulo_label.pack(pady=30)
 
         self.widget1 = Frame(self.master)
@@ -32,18 +34,25 @@ class App():
 
     def download_mp3(self, url, label):
         try:
+            self.desktop = os.path.join(os.environ['USERPROFILE'], "desktop")
             yt = YouTube(url.get())
             title = yt.player_response['videoDetails']['title']
             label.config(text="Baixando:\n" + title)
+            yt.streams.first().download(output_path=self.desktop, filename=title)
+            self.conversao_mp3(title,label)
         except:
-            label.config(text="Ocorreu ao baixar!")
+            label.config(text="Ocorreu um erro ao baixar!")
 
-    def conversao_mp3(self,url):
-        titulo = url.get()
-
-            
+    def conversao_mp3(self,title, label):
+        label.config(text="Convertendo para MP3")
+        title = title + '.mp4'
+        dirname = os.path.dirname(__file__)
+        os.chdir(dirname + "//ffmpeg//bin")
+        os.system("ffmpeg -i \"" + os.path.join(self.desktop, title) + "\" \"" +
+        os.path.join(self.desktop, title.replace('mp4','mp3')) + "\"")
 
 if '__main__' == __name__:
     root = Tk()
     App(root)
     
+     
