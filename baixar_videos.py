@@ -8,6 +8,7 @@ class App():
         root = master
         root.title("Baixador de Vídeos")
         root.geometry('370x420')
+        self.desktop = os.path.join(os.environ['USERPROFILE'], "desktop")
         self.home()
 
     def home(self):
@@ -27,29 +28,42 @@ class App():
         resultado = Label(self.master, text='')
 
         download_button = Button(self.widget1,
-                text='Baixar', command= lambda: self.download_mp3(entrada_url, resultado))
+                text='Baixar', command= lambda:
+                                 self.download_mp4(entrada_url, resultado))
 
         download_button.pack()
         resultado.pack(pady=20)
 
-    def download_mp3(self, url, label):
+    def download_mp4(self, url, label):
+        
         try:
-            self.desktop = os.path.join(os.environ['USERPROFILE'], "desktop")
             yt = YouTube(url.get())
-            title = yt.player_response['videoDetails']['title']
-            label.config(text="Baixando:\n" + title)
-            yt.streams.first().download(output_path=self.desktop, filename=title)
-            self.conversao_mp3(title,label)
         except:
-            label.config(text="Ocorreu um erro ao baixar!")
+            label.config(text="Error. Cheque sua Conexão!")
+        
+        title = self.verificaTitle(yt.title)
+        label.config(text="Baixando:\n" + title)
+        yt.streams.first().download(output_path=self.desktop, filename=title)
+        self.conversao_mp3(title,label)
+
+    def verificaTitle(self, title):
+        if "#" in title:
+            title = title[:title.index("#")]
+        return title
 
     def conversao_mp3(self,title, label):
-        label.config(text="Convertendo para MP3")
-        title = title + '.mp4'
+        label.config(text="Convertendo\n" + title + "para MP3")
+        titlemp4 = title + '.mp4'
         dirname = os.path.dirname(__file__)
         os.chdir(dirname + "//ffmpeg//bin")
-        os.system("ffmpeg -i \"" + os.path.join(self.desktop, title) + "\" \"" +
-        os.path.join(self.desktop, title.replace('mp4','mp3')) + "\"")
+        command_conversion = ("ffmpeg -i \"" + os.path.join(self.desktop, titlemp4) + "\" \"" +
+                            os.path.join(self.desktop, title + '.mp3') + "\"")
+        os.system(command_conversion)
+        self.remove_old_file( titlemp4, self.desktop)
+        
+
+    def remove_old_file(self, title, dest):
+        os.remove( os.path.join(dest, title))
 
 if '__main__' == __name__:
     root = Tk()
